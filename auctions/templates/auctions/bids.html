@@ -1,0 +1,52 @@
+{%extends 'auctions/layout.html'%}
+{%block body%}
+
+{%for bid in bids %}
+
+<div class="card border mb-3" >
+    <div class="card-body 
+    {% if not bid.item.is_active %}
+        {% if bid.item.current_bid_user == request.user %}
+            text-success
+        {% else %}
+            text-danger
+        {%endif%}    
+    {% else %}
+        {% if bid.item.current_bid_user == request.user %}
+            text-info
+        {% else %}
+            text-warning
+        {%endif%}    
+    {%endif%}
+    " style="display: flex; flex-direction: row;">
+        <img src="{{bid.item.image_url}}" alt="No Image" style=" max-width: 20%;">
+        <div style="padding: 1em;">
+            <a href="{% url 'item' itemid=bid.item.id%}">
+                <h5 class="card-title">{{bid.item.title}}</h5>
+            </a>
+            <h6 class="card-text" style="font-weight: bold;">Your Bid Price : {{bid.price}}$</h6>
+            <h6 class="card-text" style="font-weight: bold;">Current Price Price : {{bid.item.current_price}}$</h6>
+            <p class="card-text">Category : {{bid.item.category}}</p>
+            {% if not bid.item.is_active %}
+                <p class="card-text">Status : Closed</p>
+                
+                {% if bid.item.current_bid_user == request.user %}
+                <p class="card-text">Winner : <span class="badge badge-success">You!</span></p>
+                {% else %}
+                <p class="card-text">Winner : <span class="badge badge-success">{{bid.item.current_bid_user}}</span></p>
+                {%endif%}    
+            {% else %}
+                    <p class="card-text">Status : Open</p>
+                {% if bid.item.current_bid_user == request.user %}
+                   <p> Highest Bidder : <span class="badge badge-info">You!</span></p>
+                {% else %}
+                   <p> Highest Bidder : <span class="badge badge-warning">{{bid.item.current_bid_user}}</span></p> 
+                {%endif%}    
+            {%endif%}
+        </div>
+    </div>
+
+
+</div>
+{%endfor%}
+{% endblock %}

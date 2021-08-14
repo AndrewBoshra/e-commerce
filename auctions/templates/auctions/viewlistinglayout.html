@@ -1,0 +1,32 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    {% block pagetitle %}
+    {% endblock %}
+
+    {% for item in items %}
+
+
+        <div class="card mb-3" style="  display: flex; flex-direction: row;">
+            <img class="card-img-left" style="max-height: 20em; padding: 1em;" src="{{item.image_url}}" alt="No image found">
+            <div class="card-body" style="padding: 1.5em;">
+                <h5 class="card-title"><a href="{% url 'item' itemid=item.id %}">{{item.title}}</a></h5>
+                <p class="card-text"><h6>Price: {{item.current_price}}$</h6></p>
+                <p class="card-text">Description: {{item.description}}</p>
+                <p class="card-text"><small class="text-muted">Created : {{item.creation_time}}</small></p>
+                {% block action %}
+                {% endblock %}
+            
+            </div>
+        </div>
+        {%empty%}
+
+        {% block emptylist %}
+
+        <h4>No listing in this Category.</h4>
+        {% endblock %}
+    {%endfor%}
+    {%block script%}
+{% endblock %}
+{% endblock %}

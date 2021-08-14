@@ -1,0 +1,48 @@
+{% extends "auctions/viewlistinglayout.html" %}
+
+{%block title %}
+My Listings
+{%endblock%}
+
+
+{%block pageTitle %}
+<h2> My Listings</h2>
+{%endblock%}
+
+{%block emptylist%}
+<h4>You have not created any listing <a href="{% url 'createlisting' %}">Create a new Listing </a></h4>
+{% endblock %}
+
+{%block action%}
+{%if item.is_active%}
+<button name="close" class="btn btn-success" value='{{item.id}}'' >Close Listing </button>
+    {% else %}
+        <p>Status: Closed</p>
+        <p>Winner: {{item.current_bid_user}}</p>
+    {%endif%}
+
+{% endblock %}
+
+{%block script%}
+<script>
+    console.log('click')
+    document.getElementsByName("close").forEach((btn) => {
+        btn.addEventListener('click', () => {
+            fetch("{% url 'mylistings' %}", {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'itemid': btn.value
+                })
+
+            }).then(response => response.json())
+                .then(data => {
+                    if (data['success'])
+                        location.reload()
+                })
+        });
+    })
+</script>
+{% endblock %}

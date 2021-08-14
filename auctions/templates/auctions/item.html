@@ -1,0 +1,162 @@
+{% extends "auctions/layout.html" %}
+
+
+{% block body %}
+<h2>Listing: {{item.title}}</h2>
+
+
+<span id="wlist" class="badge badge-secondary" style="margin: 1em;" {%if not inwatchlist %} hidden
+    {%endif%}>WatchList</span>
+
+<div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+
+    <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100vw; padding: 2em; ">
+        <img src="{{item.image_url}}" alt="No image for this item" style="flex:1; max-height: 30em; ">
+        <div style="flex: 3; padding: 1em;">
+            <h6>Description : </h6>
+            <p>{{item.description}}</p>
+            <h3 style="font-weight: bold;" id="price">{{item.current_price}}$</h3>
+            <div class="form-group">
+
+                {%if item.is_active %}
+                <p>Status: Active</p>
+                <div id="error" class="alert alert-danger" hidden></div>
+                <div id="success" class="alert alert-success" hidden></div>
+
+                <small id="bidsmall" class="form-text text-muted">{{bids_count}} bid(s) so far. Your bid is the current
+                    bid.</small>
+                <input type="number" class="form-control" id="bid" placeholder="Bid" style="max-width: 50%;">
+                <button id="submitbid" class="btn btn-primary" style="margin-top: 1em;">Submit</button>
+
+                <button id="addtowatchlist" class="btn btn-primary" style="margin-top: 1em;" value="add" {%if inwatchlist %} hidden {%endif%}>Add to Watch List</button>
+                <button id="removefromwatchlist" class="btn btn-danger" style="margin-top: 1em;" value="remove" {%if not inwatchlist %} hidden {%endif%}>Remove from Watch List</button>
+                {% else %}
+                <p>Status: Closed</p>
+                <p>Winner: {{item.current_bid_user}}</p>
+                {%endif%}
+            </div>
+            <p><span style="font-weight: bold;">Listed by: </span>{{owner}}</p>
+            <p><span style="font-weight: bold;">Category: </span>{{item.category.category_name}}</p>
+
+        </div>
+    </div>
+    <div class="card" style="width: 60%; ">
+        <div class="card-header">
+            Comments
+        </div>
+        <ul class="list-group list-group-flush">
+            {%for comment in comments%}
+            <li class="list-group-item"><span style="font-weight: bold;">{{comment.commenter}} </span>: {{comment.comment}}</li>
+            {%empty%}
+            <li class="list-group-item">No Comments</li>
+            {%endfor%}
+        </ul>
+        <div class="form-group" style="padding: 2em; ;">
+            <label for="newcomment">New Comment... </label>
+            <input type="text" class="form-control" id="newcomment" placeholder="Enter a new Comment">
+            <button id="addcommentbtn" class="btn btn-primary" style="margin-top: 1em;">Submit</button>
+        </div>
+    </div>
+</div>
+<script>
+    error = document.getElementById('error')
+    success = document.getElementById('success')
+    watchlisted = document.getElementById('wlist')
+    newcomment = document.getElementById('newcomment')
+    bid = document.getElementById('bid')
+    price = document.getElementById('price')
+    function errormes(mes) {
+        error.hidden = false;
+        error.innerHTML = mes
+        setTimeout(() => error.hidden = true, 2000);
+    }
+    function successmes(mes) {
+        success.hidden = false;
+        success.innerHTML = mes
+        setTimeout(() => success.hidden = true, 2000);
+    }
+
+    addtowl = document.getElementById('addtowatchlist')
+    if (addtowl)
+        addtowl.addEventListener('click',
+            () => fetch(window.location.href + '/addtowatchlist')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error)
+                        errormes(data.error);
+                    else if (data.success) {
+                        successmes(data.success);
+                        watchlisted.hidden = false;
+                        document.getElementById("removefromwatchlist").hidden = false
+                        document.getElementById("addtowatchlist").hidden = true
+
+                    }
+                }));
+
+    submitbid = document.getElementById('submitbid')
+    if (submitbid)
+        submitbid.addEventListener('click',
+            () => fetch("{%url 'bid' itemid=item.id%}",{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    'bidvalue': bid.value
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error)
+                        errormes(data.error);
+                    else if (data.success) {
+                        successmes(data.success);
+                        price.innerHTML=data.value+'$'
+                    }
+                }));
+
+    document.getElementById('addcommentbtn').addEventListener('click',
+        () =>
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    'comment': newcomment.value
+                }),
+
+
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        successmes(data.success);
+                        location.reload();
+                    }
+                }));
+
+
+    rm = document.getElementById("removefromwatchlist")
+    if (rm)
+        rm.addEventListener('click', () => {
+            fetch("{% url 'watchlist' %}", {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'itemid': '{{item.id}}'
+                })
+
+            }).then(response => response.json())
+                .then(data => {
+                    if (data['success']) {
+                        location.reload()
+                    }
+                })
+        });
+
+
+</script>
+{% endblock %}

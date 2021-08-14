@@ -1,0 +1,42 @@
+{% extends "auctions/viewlistinglayout.html" %}
+
+
+{% block title %}
+Watchlist
+{% endblock %}
+
+{% block pagetitle %}
+<h2>Watchlist</h2>
+{% endblock %}
+
+{%block action%}
+<button type="button" class="btn btn-danger" name="remove" value="{{item.id}}">Remove from Watchlist</button>
+{%endblock%}
+
+{%block emptylist%}
+<h4>No Listings in Watchlist</h4>
+{% endblock %}
+{%block script%}
+
+<script>
+    document.getElementsByName("remove").forEach((btn) => {
+        btn.addEventListener('click', () => {
+            console.log('click')
+            fetch("{% url 'watchlist' %}", {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body:JSON.stringify({
+                        'itemid': btn.value
+                    })
+                
+            }).then(response => response.json())
+                .then(data => {
+                    if(data['success'])
+                        location.reload()
+                })
+        });
+    })
+</script>
+{% endblock %}
